@@ -7,23 +7,23 @@ resource "aws_vpc" "my_vpc" {
   }
 }
 
-resource "aws_subnet" "public_us_east_1a" {
+resource "aws_subnet" "public_eu_west_2a" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.0.0/24"
-  availability_zone = "us-east-2a"
+  availability_zone = "eu-west-2a"
 
   tags = {
-    Name = "Public Subnet us-east-2a"
+    Name = "Public Subnet eu-west-2a"
   }
 }
 
-resource "aws_subnet" "public_us_east_1b" {
+resource "aws_subnet" "public_eu_west_2b" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-2b"
+  availability_zone = "eu-west-2b"
 
   tags = {
-    Name = "Public Subnet us-east-2b"
+    Name = "Public Subnet eu-west-2b"
   }
 }
 
@@ -48,13 +48,13 @@ resource "aws_route_table" "my_vpc_public" {
     }
 }
 
-resource "aws_route_table_association" "my_vpc_us_east_2a_public" {
-    subnet_id = aws_subnet.public_us_east_1a.id
+resource "aws_route_table_association" "my_vpc_eu_west_2a_public" {
+    subnet_id = aws_subnet.public_eu_west_2a.id
     route_table_id = aws_route_table.my_vpc_public.id
 }
 
-resource "aws_route_table_association" "my_vpc_us_east_2b_public" {
-    subnet_id = aws_subnet.public_us_east_1b.id
+resource "aws_route_table_association" "my_vpc_eu_west_2b_public" {
+    subnet_id = aws_subnet.public_eu_west_2b.id
     route_table_id = aws_route_table.my_vpc_public.id
 }
 
@@ -85,9 +85,9 @@ resource "aws_security_group" "allow_http" {
 resource "aws_launch_configuration" "web" {
   name_prefix = "web-"
 
-  image_id = "ami-09662e4f2b2fb67f9" # Amazon Linux 2 AMI (HVM), SSD Volume Type
+  image_id = "ami-09cce85cf54d36b29" # Amazon Linux 2 AMI (HVM), SSD Volume Type
   instance_type = "t2.micro"
-  key_name = "rr"
+  key_name = "project_keypair"
 
   security_groups = [ aws_security_group.allow_http.id ]
   associate_public_ip_address = true
@@ -135,8 +135,8 @@ resource "aws_elb" "web_elb" {
     aws_security_group.elb_http.id
   ]
   subnets = [
-    aws_subnet.public_us_east_1a.id,
-    aws_subnet.public_us_east_1b.id
+    aws_subnet.public_eu_west_2a.id,
+    aws_subnet.public_eu_west_2b.id
   ]
 
   cross_zone_load_balancing   = true
@@ -183,8 +183,8 @@ resource "aws_autoscaling_group" "web" {
   metrics_granularity = "1Minute"
 
   vpc_zone_identifier  = [
-    aws_subnet.public_us_east_1a.id,
-    aws_subnet.public_us_east_1b.id
+    aws_subnet.public_eu_west_2a.id,
+    aws_subnet.public_eu_west_2b.id
   ]
 
   # Required to redeploy without an outage.
